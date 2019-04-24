@@ -42,7 +42,7 @@ func Ban() *command.Command {
 }
 
 func banCommandHandler(cmd *command.Execution) {
-	stacktraceBot := bot.GetBot()
+	snaily := bot.GetBot()
 
 	target := cmd.GetMember(cmd.Arguments[0])
 
@@ -52,20 +52,20 @@ func banCommandHandler(cmd *command.Execution) {
 	}
 
 	// Check if the command sender can target the selected user
-	if !stacktraceBot.CanTarget(cmd.Member, target) {
+	if !snaily.CanTarget(cmd.Member, target) {
 		cmd.SendMessage(cmd.Message.ChannelID, "<@%s>, you may not target this user.", cmd.Message.Author.ID)
 		return
 	}
 	target.GuildID = cmd.Message.GuildID
 
 	// Check if the user is targeting themselves or the bot user.
-	if target.User.ID == cmd.Message.Author.ID || target.User.ID == stacktraceBot.User.ID {
+	if target.User.ID == cmd.Message.Author.ID || target.User.ID == snaily.User.ID {
 		cmd.SendMessage(cmd.Message.ChannelID, "<@%s>, you might as well start a war.", cmd.Message.Author.ID)
 		return
 	}
 
 	// Check if the bot can target the selected user
-	if !stacktraceBot.CanBotTarget(target) {
+	if !snaily.CanBotTarget(target) {
 		cmd.SendMessage(cmd.Message.ChannelID, "<@%s>, I cannot target that user.", cmd.Message.Author.ID)
 		return
 	}
@@ -91,7 +91,7 @@ func banCommandHandler(cmd *command.Execution) {
 		}
 	}
 
-	err = stacktraceBot.Session.GuildBanCreateWithReason(cmd.Message.GuildID, target.User.ID, reason, 0)
+	err = snaily.Session.GuildBanCreateWithReason(cmd.Message.GuildID, target.User.ID, reason, 0)
 	if err != nil {
 		cmd.SendMessage(cmd.Message.ChannelID, "<@%s>, an error occurred while banning the selected user.", cmd.Message.Author.ID)
 		logger.Errorw("[Discord] Failed to ban user.", logger.Err(err))
@@ -142,5 +142,5 @@ func banCommandHandler(cmd *command.Execution) {
 		"<@%s>, %s#%s (%s) has been banned for \"%s\".", cmd.Message.Author.ID, target.User.Username, target.User.Discriminator, target.User.ID, reason,
 	)
 
-	_, _ = stacktraceBot.Session.ChannelMessageSend("", fmt.Sprintf("<@%s>, Pong! %vms", cmd.Message.Author.ID, int64(stacktraceBot.Session.HeartbeatLatency()/time.Millisecond)))
+	_, _ = snaily.Session.ChannelMessageSend("", fmt.Sprintf("<@%s>, Pong! %vms", cmd.Message.Author.ID, int64(snaily.Session.HeartbeatLatency()/time.Millisecond)))
 }

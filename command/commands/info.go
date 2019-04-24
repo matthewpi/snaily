@@ -23,11 +23,11 @@ func Info() *command.Command {
 }
 
 func infoCommandHandler(cmd *command.Execution) {
-	stacktraceBot := bot.GetBot()
+	snaily := bot.GetBot()
 
-	stats, _ := stacktraceBot.Session.State.Guild(cmd.Message.GuildID)
+	stats, _ := snaily.Session.State.Guild(cmd.Message.GuildID)
 
-	guildCount := strconv.Itoa(len(stacktraceBot.Session.State.Guilds))
+	guildCount := strconv.Itoa(len(snaily.Session.State.Guilds))
 	memberCount := strconv.Itoa(len(stats.Members))
 	channelCount := strconv.Itoa(len(stats.Channels))
 
@@ -36,7 +36,7 @@ func infoCommandHandler(cmd *command.Execution) {
 
 	systemInfo := fmt.Sprintf(
 		"Go Version:   %s\nGo Routines:  %d\nMemory Usage: %s / %s\nGarbage:      %s",
-		stacktraceBot.Config.Build.GoVersion,
+		snaily.Config.Build.GoVersion,
 		runtime.NumGoroutine(),
 		fmt.Sprintf("%d MB", memStats.Alloc/1024/1024),
 		fmt.Sprintf("%d MB", memStats.TotalAlloc/1024/1024),
@@ -50,8 +50,8 @@ func infoCommandHandler(cmd *command.Execution) {
 		"",
 		&discordgo.MessageEmbedAuthor{
 			URL:     "",
-			Name:    stacktraceBot.Config.Build.Name,
-			IconURL: stacktraceBot.User.AvatarURL(""),
+			Name:    snaily.Config.Build.Name,
+			IconURL: snaily.User.AvatarURL(""),
 		},
 		[]*discordgo.MessageEmbedField{
 			{

@@ -94,7 +94,7 @@ func main() {
 
 	discord.AddHandler(events.ReadyEvent)
 	discord.AddHandler(events.MessageCreateEvent)
-	// discord.AddHandler(events.MessageUpdateEvent)
+	//discord.AddHandler(events.MessageUpdateEvent)
 	discord.AddHandler(events.MessageDeleteEvent)
 
 	err = discord.Open()
@@ -116,16 +116,18 @@ func main() {
 			commands.Info(),
 			commands.Kick(),
 			commands.Mute(),
+			commands.Pause(),
 			commands.Ping(),
 			commands.Play(),
 			commands.Purge(),
+			commands.Queue(),
 			commands.Steam(),
 		},
 		Mongo:   mongo,
 		Redis:   redis,
 		Session: discord,
 		User:    botUser,
-		GuildID: "539681559674880000",
+		GuildID: config.Get().Discord.GuildID,
 	})
 	bot.GetBot().Music()
 

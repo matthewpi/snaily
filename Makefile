@@ -15,7 +15,7 @@ all: clean build
 
 clean:
 	go clean
-	rm sfBot -f
+	rm snaily -f
 
 build:
 	CGO_ENABLED=$(CGO) GOOS=$(GOOS) GOARCH=$(GOARCH) go build -o $(OUTPUT_FILE) -v $(LDFLAGS) main.go

@@ -4,7 +4,7 @@ import (
 	"github.com/go-redis/redis"
 )
 
-// RedisDriver represents a "stacktrace.fun" Redis driver.
+// RedisDriver represents a Redis driver.
 type RedisDriver struct {
 	Client *redis.Client
 }

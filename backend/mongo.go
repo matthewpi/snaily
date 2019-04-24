@@ -4,7 +4,7 @@ import (
 	"github.com/globalsign/mgo"
 )
 
-// MongoDriver represents a "stacktrace.fun" MongoDB driver.
+// MongoDriver represents a MongoDB driver.
 type MongoDriver struct {
 	Session    *mgo.Session
 	Message    *mgo.Collection

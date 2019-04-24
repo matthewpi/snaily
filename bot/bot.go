@@ -8,7 +8,6 @@ import (
 	"github.com/matthewpi/snaily/command"
 	"github.com/matthewpi/snaily/config"
 	"github.com/matthewpi/snaily/logger"
-	"github.com/matthewpi/snaily/music"
 	"io"
 	"net/http"
 	"strings"
@@ -17,15 +16,15 @@ import (
 
 // Bot .
 type Bot struct {
-	Config   *config.Config       `json:"config"`
-	Commands []*command.Command   `json:"commands"`
-	Queue    []*music.Request  	  `json:"queue"`
-	Mongo    *backend.MongoDriver `json:"-"`
-	Redis    *backend.RedisDriver `json:"-"`
-	Session  *discordgo.Session   `json:"-"`
-	User     *discordgo.User      `json:"-"`
-	GuildID  string               `json:"guildId"`
-	voice    bool                 `json:"-"`
+	Config      *config.Config       `json:"config"`
+	Commands    []*command.Command   `json:"commands"`
+	Mongo       *backend.MongoDriver `json:"-"`
+	Redis       *backend.RedisDriver `json:"-"`
+	Session     *discordgo.Session   `json:"-"`
+	User        *discordgo.User      `json:"-"`
+	GuildID     string               `json:"guildId"`
+	Queue       []*Request           `json:"queue"`
+	MusicStream *dca.StreamingSession `json:"-"`
 }
 
 // SendMessage .
@@ -92,7 +91,7 @@ func (bot *Bot) DeleteMessage(message *discordgo.Message) {
 
 // HasPermission .
 func (bot *Bot) HasPermission(member *discordgo.Member, permission int) bool {
-	guild, err := stacktraceBot.Guild(member.GuildID)
+	guild, err := snaily.Guild(member.GuildID)
 	if err != nil {
 		logger.Errorw("[Discord] Failed to fetch guild information.", logger.Err(err))
 		return false
@@ -132,7 +131,7 @@ func (bot *Bot) CanTarget(member *discordgo.Member, target *discordgo.Member) bo
 		return true
 	}
 
-	guild, err := stacktraceBot.Guild(member.GuildID)
+	guild, err := snaily.Guild(member.GuildID)
 	if err != nil {
 		logger.Errorw("[Discord] Failed to fetch guild information.", logger.Err(err))
 		return false
@@ -245,9 +244,9 @@ func (bot *Bot) GuildMember(guildId string, userId string) (*discordgo.Member, e
 }
 
 // AddQueue .
-func (bot *Bot) AddQueue(request *music.Request) {
+func (bot *Bot) AddQueue(request *Request) {
 	if bot.Queue == nil {
-		bot.Queue = []*music.Request{}
+		bot.Queue = []*Request{}
 	}
 
 	// Add the video to the queue.
@@ -255,31 +254,18 @@ func (bot *Bot) AddQueue(request *music.Request) {
 }
 
 func (bot *Bot) Music() {
-	//done := make(chan bool)
 	go func() {
 		for {
 			if len(bot.Queue) < 1 {
-				voice := bot.Session.VoiceConnections[bot.GuildID]
-				if voice != nil {
-					// Disconnect from voice.
-					err := voice.Disconnect()
-					if err != nil {
-						logger.Errorw("[Discord] Failed to disconnect from voice channel.", logger.Err(err))
-						return
-					}
-
-					voice.Close()
-				}
-
 				time.Sleep(time.Second * 3)
 				continue
 			}
 
-			var request *music.Request
+			var request *Request
 			request, bot.Queue = bot.Queue[0], bot.Queue[1:]
 
 			// Get guild information.
-			guild, err := stacktraceBot.Guild(request.Author.GuildID)
+			guild, err := snaily.Guild(request.Author.GuildID)
 			if err != nil {
 				logger.Errorw("[Discord] Failed to get guild information.", logger.Err(err))
 				return
@@ -303,7 +289,7 @@ func (bot *Bot) Music() {
 			}
 
 			// Join voice channel.
-			conn, err := stacktraceBot.Session.ChannelVoiceJoin(request.Author.GuildID, channelId, false, false)
+			conn, err := snaily.Session.ChannelVoiceJoin(request.Author.GuildID, channelId, false, false)
 			if err != nil {
 				bot.SendMessage(request.ChannelID, "<@%s>, I cannot join your voice channel.", request.Author.User.ID)
 				logger.Errorw("[Discord] Failed to connect to voice channel.", logger.Err(err))
@@ -320,7 +306,7 @@ func (bot *Bot) Music() {
 			// Get the video.
 			resp, err := http.Get(request.Video)
 			if err != nil {
-				bot.SendMessage(request.ChannelID, "<@%s>, an error occurred while downloading the video.", request.Author.User.ID)
+				bot.SendMessage(request.ChannelID, "An error occurred while downloading the video.")
 				logger.Errorw("[Discord] Failed to fetch video.", logger.Err(err))
 				return
 			}
@@ -334,20 +320,21 @@ func (bot *Bot) Music() {
 			// Start encoding the video.
 			encodingSession, err := dca.EncodeMem(resp.Body, options)
 			if err != nil {
-				bot.SendMessage(request.ChannelID, "<@%s>, an error occurred while encoding the video.", request.Author.User.ID)
+				bot.SendMessage(request.ChannelID, "An error occurred while encoding the video.")
 				logger.Errorw("[Discord] Failed to encode video.", logger.Err(err))
 				return
 			}
 
 			// Send a response.
-			bot.SendMessage(request.ChannelID, "<@%s>, now playing \"%s\".", request.Author.User.ID, request.VideoInfo.Title)
+			bot.SendMessage(request.ChannelID, "Now playing \"%s\".", request.VideoInfo.Title)
 
 			// Play the video
 			done := make(chan error)
 			stream := dca.NewStream(encodingSession, conn, done)
+			bot.MusicStream = stream
 			err = <-done
 			if err != nil && err != io.EOF {
-				bot.SendMessage(request.ChannelID, "<@%s>, an error occurred during playback.", request.Author.User.ID)
+				bot.SendMessage(request.ChannelID, "An error occurred during playback.")
 				logger.Errorw("[Discord] Error occurred while playing video.", logger.Err(err))
 				return
 			}
@@ -363,22 +350,30 @@ func (bot *Bot) Music() {
 			if err != nil {
 				logger.Errorw("[Discord] Failed to close stream.", logger.Err(err))
 			}
+			bot.MusicStream = nil
 
 			encodingSession.Stop()
 			encodingSession.Cleanup()
+
+			if len(bot.Queue) < 1 {
+				err = conn.Disconnect()
+				if err != nil {
+					logger.Errorw("[Discord] Failed to disconnect from voice channel.", logger.Err(err))
+					return
+				}
+			}
 		}
 	}()
-	//<-done
 }
 
-var stacktraceBot *Bot
+var snaily *Bot
 
 // GetBot .
 func GetBot() *Bot {
-	return stacktraceBot
+	return snaily
 }
 
 // SetBot .
 func SetBot(b *Bot) {
-	stacktraceBot = b
+	snaily = b
 }

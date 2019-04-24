@@ -35,7 +35,7 @@ func Kick() *command.Command {
 }
 
 func kickCommandHandler(cmd *command.Execution) {
-	stacktraceBot := bot.GetBot()
+	snaily := bot.GetBot()
 
 	target := cmd.GetMember(cmd.Arguments[0])
 
@@ -45,19 +45,19 @@ func kickCommandHandler(cmd *command.Execution) {
 	}
 
 	// Check if the command sender can target the selected user
-	if !stacktraceBot.CanTarget(cmd.Member, target) {
+	if !snaily.CanTarget(cmd.Member, target) {
 		cmd.SendMessage(cmd.Message.ChannelID, "<@%s>, you may not target this user.", cmd.Message.Author.ID)
 		return
 	}
 
 	// Check if the user is targeting themselves or the bot user.
-	if target.User.ID == cmd.Message.Author.ID || target.User.ID == stacktraceBot.User.ID {
+	if target.User.ID == cmd.Message.Author.ID || target.User.ID == snaily.User.ID {
 		cmd.SendMessage(cmd.Message.ChannelID, "<@%s>, you might as well start a war.", cmd.Message.Author.ID)
 		return
 	}
 
 	// Check if the bot can target the selected user
-	if !stacktraceBot.CanBotTarget(target) {
+	if !snaily.CanBotTarget(target) {
 		cmd.SendMessage(cmd.Message.ChannelID, "<@%s>, I cannot target that user.", cmd.Message.Author.ID)
 		return
 	}
@@ -71,7 +71,7 @@ func kickCommandHandler(cmd *command.Execution) {
 	}
 	reason := builder.String()
 
-	err := stacktraceBot.Session.GuildMemberDeleteWithReason(cmd.Message.GuildID, target.User.ID, reason)
+	err := snaily.Session.GuildMemberDeleteWithReason(cmd.Message.GuildID, target.User.ID, reason)
 	if err != nil {
 		cmd.SendMessage(cmd.Message.ChannelID, "<@%s>, an error occurred while kicking the selected user.", cmd.Message.Author.ID)
 		logger.Errorw("[Discord] Failed to kick user.", logger.Err(err))

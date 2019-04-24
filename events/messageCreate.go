@@ -15,7 +15,7 @@ import (
 
 func MessageCreateEvent(session *discordgo.Session, msg *discordgo.MessageCreate) {
 	// Get the stored stacktrace.bot object.
-	stacktraceBot := bot.GetBot()
+	snaily := bot.GetBot()
 
 	// Check if the message author is a bot.
 	if msg.Author.Bot {
@@ -27,6 +27,55 @@ func MessageCreateEvent(session *discordgo.Session, msg *discordgo.MessageCreate
 
 	// Check if the message starts with the configured command prefix.
 	if string(msg.Content[0]) != prefix {
+		// Beware, profane language D:
+		// Also I do realize this is the dumbest way to check for profanity
+		// and that I could make this config based, but this is for testing.
+		// there is also like 8 million ways to bypass this, but it will prevent
+		// most people from being able to do so.
+		if strings.Contains(msg.Content, "nigg") || strings.Contains(msg.Content, "fagg") || strings.Contains(msg.Content, "spick") || strings.Contains(msg.Content, "beaner") {
+			snaily.DeleteMessage(msg.Message)
+
+			// Log the message delete.
+			snaily.SendEmbedMessage(
+				config.Get().Discord.Channels.Messages,
+				0xB92222,
+				"Message Deleted",
+				"",
+				&discordgo.MessageEmbedAuthor{
+					URL:     "",
+					Name:    fmt.Sprintf("%s#%s", msg.Author.Username, msg.Author.Discriminator),
+					IconURL: msg.Author.AvatarURL(""),
+				},
+				[]*discordgo.MessageEmbedField{
+					{
+						Name:   "Message ID",
+						Value:  msg.ID,
+						Inline: false,
+					},
+
+					{
+						Name:   "Channel",
+						Value:  fmt.Sprintf("<#%s>", msg.ChannelID),
+						Inline: false,
+					},
+
+					{
+						Name:   "Content",
+						Value:  msg.Content,
+						Inline: false,
+					},
+
+					{
+						Name:   "Reason",
+						Value:  "Profane Language",
+						Inline: false,
+					},
+				},
+				false,
+			)
+			return
+		}
+
 		go func() {
 			messageJson, err := json.Marshal(msg.Message)
 			if err != nil {
@@ -34,7 +83,7 @@ func MessageCreateEvent(session *discordgo.Session, msg *discordgo.MessageCreate
 				return
 			}
 
-			exec := stacktraceBot.Redis.Client.Set(fmt.Sprintf("snaily:message:%s", msg.ID), messageJson, 0)
+			exec := snaily.Redis.Client.Set(fmt.Sprintf("snaily:message:%s", msg.ID), messageJson, 0)
 			if exec.Err() != nil {
 				logger.Errorw("[Discord] Failed to set redis value.", logger.Err(err))
 				return
@@ -65,7 +114,7 @@ func MessageCreateEvent(session *discordgo.Session, msg *discordgo.MessageCreate
 
 	// Get the matching command object using the user's message.
 	var cmd *command.Command
-	for _, c := range stacktraceBot.Commands {
+	for _, c := range snaily.Commands {
 		if label == c.Name {
 			cmd = c
 			break
@@ -99,19 +148,19 @@ func MessageCreateEvent(session *discordgo.Session, msg *discordgo.MessageCreate
 	}
 
 	// Get the user as a guild member.
-	member, err := stacktraceBot.GuildMember(msg.GuildID, msg.Author.ID)
+	member, err := snaily.GuildMember(msg.GuildID, msg.Author.ID)
 	if err != nil {
-		stacktraceBot.SendMessage(msg.ChannelID, "<@%s>, an error occurred while loading your user information, I guess you don't exist.", msg.Author.ID)
+		snaily.SendMessage(msg.ChannelID, "<@%s>, an error occurred while loading your user information, I guess you don't exist.", msg.Author.ID)
 		return
 	}
 
 	// Check if the user does not have administrator permissions.
-	if !stacktraceBot.HasPermission(member, discordgo.PermissionAdministrator) {
+	if !snaily.HasPermission(member, discordgo.PermissionAdministrator) {
 		// Check if the command requires enhanced permissions.
 		if cmd.Enhanced {
 			// Check if the user does not have the "Enhanced" role.
-			if !stacktraceBot.HasRole(member, config.Get().Discord.Roles.Enhanced) {
-				stacktraceBot.SendMessage(msg.ChannelID, "<@%s>, no permission.", msg.Author.ID)
+			if !snaily.HasRole(member, config.Get().Discord.Roles.Enhanced) {
+				snaily.SendMessage(msg.ChannelID, "<@%s>, no permission.", msg.Author.ID)
 				return
 			}
 		}
@@ -119,8 +168,8 @@ func MessageCreateEvent(session *discordgo.Session, msg *discordgo.MessageCreate
 		// Check if the command requires a specific role.
 		if len(cmd.Role) > 1 {
 			// Check if the user does not have the configured role.
-			if !stacktraceBot.HasRole(member, cmd.Role) {
-				stacktraceBot.SendMessage(msg.ChannelID, "<@%s>, no permission.", msg.Author.ID)
+			if !snaily.HasRole(member, cmd.Role) {
+				snaily.SendMessage(msg.ChannelID, "<@%s>, no permission.", msg.Author.ID)
 				return
 			}
 		}
@@ -141,10 +190,10 @@ func MessageCreateEvent(session *discordgo.Session, msg *discordgo.MessageCreate
 		go func() {
 			// Wait 10 seconds, then delete the message
 			time.Sleep(10 * time.Second)
-			stacktraceBot.DeleteMessage(msg.Message)
+			snaily.DeleteMessage(msg.Message)
 		}()
 
-		stacktraceBot.SendMessage(msg.ChannelID, "<@%s>, usage: `%s%s%s`", msg.Author.ID, prefix, label, cmd.Usage())
+		snaily.SendMessage(msg.ChannelID, "<@%s>, usage: `%s%s%s`", msg.Author.ID, prefix, label, cmd.Usage())
 		return
 	}
 
@@ -155,8 +204,8 @@ func MessageCreateEvent(session *discordgo.Session, msg *discordgo.MessageCreate
 		Arguments: arguments,
 		Member:    member,
 		Message:   msg.Message,
-		Session:   stacktraceBot.Session,
-		BotUser:   stacktraceBot.User,
+		Session:   snaily.Session,
+		BotUser:   snaily.User,
 		Command:   cmd,
 	}
 

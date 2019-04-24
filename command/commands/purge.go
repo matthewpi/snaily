@@ -30,7 +30,7 @@ func Purge() *command.Command {
 }
 
 func purgeCommandHandler(cmd *command.Execution) {
-	stacktraceBot := bot.GetBot()
+	snaily := bot.GetBot()
 
 	// Convert the argument to an integer.
 	messageCount, err := strconv.Atoi(cmd.Arguments[0])
@@ -46,7 +46,7 @@ func purgeCommandHandler(cmd *command.Execution) {
 	}
 
 	// Fetch a list of message IDs to delete.
-	messages, err := stacktraceBot.Session.ChannelMessages(cmd.Message.ChannelID, messageCount, "", "", "")
+	messages, err := snaily.Session.ChannelMessages(cmd.Message.ChannelID, messageCount, "", "", "")
 	if err != nil {
 		cmd.SendMessage(cmd.Message.ChannelID, "<@%s>, an error occurred while fetching a list of messages.", cmd.Message.Author.ID)
 		logger.Errorw("[Discord] Failed to fetch a list of messages.", logger.Err(err))
@@ -60,7 +60,7 @@ func purgeCommandHandler(cmd *command.Execution) {
 	}
 
 	// Delete the messages.
-	err = stacktraceBot.Session.ChannelMessagesBulkDelete(cmd.Message.ChannelID, messagesToDelete)
+	err = snaily.Session.ChannelMessagesBulkDelete(cmd.Message.ChannelID, messagesToDelete)
 	if err != nil {
 		cmd.SendMessage(cmd.Message.ChannelID, "<@%s>, an error occurred while deleting messages.", cmd.Message.Author.ID)
 		logger.Errorw("[Discord] Failed to bulk delete messages.", logger.Err(err))

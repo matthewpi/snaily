@@ -20,6 +20,6 @@ func Ping() *command.Command {
 }
 
 func pingCommandHandler(cmd *command.Execution) {
-	stacktraceBot := bot.GetBot()
-	cmd.SendMessage(cmd.Message.ChannelID, "Pong! %vms", int64(stacktraceBot.Session.HeartbeatLatency()/time.Millisecond))
+	snaily := bot.GetBot()
+	cmd.SendMessage(cmd.Message.ChannelID, "Pong! %vms", int64(snaily.Session.HeartbeatLatency()/time.Millisecond))
 }

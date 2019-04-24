@@ -8,8 +8,6 @@ import (
 
 // Config .
 type Config struct {
-	Environment string `json:"environment"`
-
 	Build struct {
 		Name      string `json:"name"`
 		Version   string `json:"version"`
@@ -33,8 +31,9 @@ type Config struct {
 	} `json:"backend"`
 
 	Discord struct {
-		Token  string `json:"token"`
-		Prefix string `json:"prefix"`
+		Token   string `json:"token"`
+		GuildID string `json:"guildId"`
+		Prefix  string `json:"prefix"`
 
 		Channels struct {
 			Punishments string `json:"punishments"`
@@ -58,11 +57,6 @@ var config *Config
 // Get returns the loaded config object.
 func Get() *Config {
 	return config
-}
-
-// IsProduction is self explanatory..
-func IsProduction() bool {
-	return config.Environment == "production"
 }
 
 // Load loads the configuration from the disk.
@@ -92,7 +86,7 @@ func Load(name string, version string, branch string, commit string, date string
 	}
 
 	if len(config.Backend.MongoDB.Database) < 1 {
-		config.Backend.MongoDB.Database = "stacktracefun"
+		config.Backend.MongoDB.Database = "snaily"
 	}
 
 	return nil

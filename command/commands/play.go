@@ -5,7 +5,6 @@ import (
 	"github.com/matthewpi/snaily/command"
 	"github.com/matthewpi/snaily/config"
 	"github.com/matthewpi/snaily/logger"
-	"github.com/matthewpi/snaily/music"
 	"github.com/rylio/ytdl"
 )
 
@@ -29,7 +28,7 @@ func Play() *command.Command {
 }
 
 func playCommandHandler(cmd *command.Execution) {
-	stacktraceBot := bot.GetBot()
+	snaily := bot.GetBot()
 
 	// Get the video's information.
 	videoInfo, err := ytdl.GetVideoInfo(cmd.Arguments[0])
@@ -55,65 +54,15 @@ func playCommandHandler(cmd *command.Execution) {
 		return
 	}
 
-	request := &music.Request{
+	request := &bot.Request{
 		Author: cmd.Member,
 		ChannelID: cmd.Message.ChannelID,
 		Video: downloadURL.String(),
 		VideoInfo: videoInfo,
 	}
-	stacktraceBot.AddQueue(request)
+	snaily.AddQueue(request)
 
-	cmd.SendMessage(cmd.Message.ChannelID, "<@%s>, added \"%s\" to the queue.", cmd.Message.Author.ID, videoInfo.Title)
-
-	/*// Get the video.
-	resp, err := http.Get(downloadURL.String())
-	if err != nil {
-		cmd.SendMessage(cmd.Message.ChannelID, "<@%s>, Error: failed to download video.", cmd.Message.Author.ID)
-		logger.Errorw("[Discord] Failed to fetch video.", logger.Err(err))
-		return
+	if len(snaily.Queue) > 2 {
+		cmd.SendMessage(cmd.Message.ChannelID, "<@%s>, added \"%s\" to the queue.", cmd.Message.Author.ID, videoInfo.Title)
 	}
-
-	// Start encoding the video.
-	encodingSession, err := dca.EncodeMem(resp.Body, options)
-	if err != nil {
-		cmd.SendMessage(cmd.Message.ChannelID, "<@%s>, Error: failed to encode video.", cmd.Message.Author.ID)
-		logger.Errorw("[Discord] Failed to encode video.", logger.Err(err))
-		return
-	}
-	defer encodingSession.Cleanup()
-
-	// Send a response.
-	cmd.SendMessage(cmd.Message.ChannelID, "<@%s>, now playing \"%s\"", cmd.Message.Author.ID, videoInfo.Title)
-
-	// Play the video
-	done := make(chan error)
-	stream := dca.NewStream(encodingSession, conn, done)
-	err = <-done
-	if err != nil && err != io.EOF {
-		cmd.SendMessage(cmd.Message.ChannelID, "<@%s>, an error occurred during playback.", cmd.Message.Author.ID)
-		logger.Errorw("[Discord] Error occurred while playing video.", logger.Err(err))
-		return
-	}
-
-	// Stop speaking.
-	err = conn.Speaking(false)
-	if err != nil {
-		logger.Errorw("[Discord] Failed to stop speaking.", logger.Err(err))
-		return
-	}
-
-	_, err = stream.Finished()
-	if err != nil {
-		logger.Errorw("[Discord] Failed to close stream.", logger.Err(err))
-	}
-
-	encodingSession.Stop()
-	encodingSession.Cleanup()
-
-	// Disconnect from voice.
-	err = conn.Disconnect()
-	if err != nil {
-		logger.Errorw("[Discord] Failed to disconnect from voice channel.", logger.Err(err))
-		return
-	}*/
 }
