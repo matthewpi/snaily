@@ -1,0 +1,62 @@
+{
+    "backend": {
+        "mongodb": {
+            "uri": "mongodb://127.0.0.1:27017",
+            "database": "snaily"
+        },
+
+        "redis": {
+            "uri": "127.0.0.1:6379",
+            "password": "",
+            "database": 0
+        }
+    },
+
+    "discord": {
+        "token": "https://discordapp.com/developers/applications/ (Create a bot application and get the token)",
+        "guildId": "<Guild ID> (this bot only supports one guild currently)",
+        "prefix": ".",
+
+        "status": {
+            "active": true,
+            "name": "with mods",
+            "type": "playing"
+        },
+
+        "channels": {
+            "punishments": "<Punishment Log Channel ID>",
+            "messages": "<Message Log Channel ID>"
+        },
+
+        "roles": {
+            "enhanced": "<Enhanced Role ID>",
+            "boombox": "<Boombox Role ID>",
+            "muted": "<Muted Role ID>"
+        }
+    },
+
+    "steam": {
+        "key": "https://steamcommunity.com/dev/apikey (Generate a new API Key)"
+    },
+
+    "filter": {
+        "active": false,
+
+        "words": [
+            "bastard",
+            "clitoris",
+            "cum",
+            "cunt",
+            "fag",
+            "jizz",
+            "nigga",
+            "nigger",
+            "prick",
+            "queer",
+            "spunk",
+            "vagina",
+            "wank",
+            "whore"
+        ]
+    }
+}

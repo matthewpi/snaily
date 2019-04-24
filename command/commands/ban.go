@@ -5,7 +5,6 @@ import (
 	"github.com/bwmarrin/discordgo"
 	"github.com/matthewpi/snaily/bot"
 	"github.com/matthewpi/snaily/command"
-	"github.com/matthewpi/snaily/config"
 	"github.com/matthewpi/snaily/logger"
 	"github.com/matthewpi/snaily/utils"
 	"strings"
@@ -100,7 +99,7 @@ func banCommandHandler(cmd *command.Execution) {
 
 	// Log the mute.
 	cmd.SendEmbedMessage(
-		config.Get().Discord.Channels.Punishments,
+		snaily.Config.Discord.Channels.Punishments,
 		0xD0021B,
 		"Ban",
 		"",

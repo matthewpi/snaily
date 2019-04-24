@@ -5,7 +5,6 @@ import (
 	"github.com/bwmarrin/discordgo"
 	"github.com/matthewpi/snaily/bot"
 	"github.com/matthewpi/snaily/command"
-	"github.com/matthewpi/snaily/config"
 	"github.com/matthewpi/snaily/logger"
 	"strings"
 )
@@ -80,7 +79,7 @@ func kickCommandHandler(cmd *command.Execution) {
 
 	// Log the kick.
 	cmd.SendEmbedMessage(
-		config.Get().Discord.Channels.Punishments,
+		snaily.Config.Discord.Channels.Punishments,
 		0xF5A623,
 		"Kick",
 		"",

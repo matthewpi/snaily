@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"github.com/bwmarrin/discordgo"
 	"github.com/matthewpi/snaily/bot"
-	"github.com/matthewpi/snaily/config"
 	"github.com/matthewpi/snaily/logger"
 )
 
@@ -36,13 +35,13 @@ func MessageDeleteEvent(session *discordgo.Session, msg *discordgo.MessageDelete
 	}
 
 	// Ignore command messages.
-	if string(originalMessage.Content[0]) == config.Get().Discord.Prefix {
+	if string(originalMessage.Content[0]) == snaily.Config.Discord.Prefix {
 		return
 	}
 
 	// Log the message delete.
 	snaily.SendEmbedMessage(
-		config.Get().Discord.Channels.Messages,
+		snaily.Config.Discord.Channels.Messages,
 		0xB92222,
 		"Message Deleted",
 		"",

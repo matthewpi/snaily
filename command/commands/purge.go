@@ -5,7 +5,6 @@ import (
 	"github.com/bwmarrin/discordgo"
 	"github.com/matthewpi/snaily/bot"
 	"github.com/matthewpi/snaily/command"
-	"github.com/matthewpi/snaily/config"
 	"github.com/matthewpi/snaily/logger"
 	"strconv"
 )
@@ -72,7 +71,7 @@ func purgeCommandHandler(cmd *command.Execution) {
 
 	// Log the purge.
 	cmd.SendEmbedMessage(
-		config.Get().Discord.Channels.Messages,
+		snaily.Config.Discord.Channels.Messages,
 		0xF8E71C,
 		"Messages Purge",
 		"",
@@ -83,8 +82,8 @@ func purgeCommandHandler(cmd *command.Execution) {
 		},
 		[]*discordgo.MessageEmbedField{
 			{
-				Name: "Channel ID",
-				Value: cmd.Message.ChannelID,
+				Name:   "Channel ID",
+				Value:  cmd.Message.ChannelID,
 				Inline: false,
 			},
 			{

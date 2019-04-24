@@ -35,6 +35,12 @@ type Config struct {
 		GuildID string `json:"guildId"`
 		Prefix  string `json:"prefix"`
 
+		Status struct {
+			Active bool   `json:"active"`
+			Name   string `json:"name"`
+			Type   string `json:"type"`
+		} `json:"status"`
+
 		Channels struct {
 			Punishments string `json:"punishments"`
 			Messages    string `json:"messages"`
@@ -50,6 +56,11 @@ type Config struct {
 	Steam struct {
 		Key string `json:"key"`
 	} `json:"steam"`
+
+	Filter struct {
+		Active bool     `json:"active"`
+		Words  []string `json:"words"`
+	} `json:"filter"`
 }
 
 var config *Config

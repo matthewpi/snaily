@@ -129,6 +129,8 @@ func main() {
 		User:    botUser,
 		GuildID: config.Get().Discord.GuildID,
 	})
+
+	// Start the music thread.
 	bot.GetBot().Music()
 
 	buildVersion = ""

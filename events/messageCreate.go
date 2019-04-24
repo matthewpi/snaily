@@ -6,8 +6,8 @@ import (
 	"github.com/bwmarrin/discordgo"
 	"github.com/matthewpi/snaily/bot"
 	"github.com/matthewpi/snaily/command"
-	"github.com/matthewpi/snaily/config"
 	"github.com/matthewpi/snaily/logger"
+	"github.com/matthewpi/snaily/utils"
 	"strings"
 	"time"
 	"unicode"
@@ -22,22 +22,18 @@ func MessageCreateEvent(session *discordgo.Session, msg *discordgo.MessageCreate
 		return
 	}
 
-	// Get the configured command prefix.
-	prefix := config.Get().Discord.Prefix
-
-	// Check if the message starts with the configured command prefix.
-	if string(msg.Content[0]) != prefix {
-		// Beware, profane language D:
-		// Also I do realize this is the dumbest way to check for profanity
-		// and that I could make this config based, but this is for testing.
-		// there is also like 8 million ways to bypass this, but it will prevent
-		// most people from being able to do so.
-		if strings.Contains(msg.Content, "nigg") || strings.Contains(msg.Content, "fagg") || strings.Contains(msg.Content, "spick") || strings.Contains(msg.Content, "beaner") {
+	// Profanity Filter.
+	if snaily.Config.Filter.Active {
+		profane, err := utils.IsProfane(msg.Content)
+		if err != nil {
+			logger.Errorw("[Discord] Failed to check message for profane content.", logger.Err(err))
+		} else if profane {
+			// Delete the message.
 			snaily.DeleteMessage(msg.Message)
 
 			// Log the message delete.
 			snaily.SendEmbedMessage(
-				config.Get().Discord.Channels.Messages,
+				snaily.Config.Discord.Channels.Messages,
 				0xB92222,
 				"Message Deleted",
 				"",
@@ -73,9 +69,14 @@ func MessageCreateEvent(session *discordgo.Session, msg *discordgo.MessageCreate
 				},
 				false,
 			)
-			return
 		}
+	}
 
+	// Get the configured command prefix.
+	prefix := snaily.Config.Discord.Prefix
+
+	// Check if the message starts with the configured command prefix.
+	if string(msg.Content[0]) != prefix {
 		go func() {
 			messageJson, err := json.Marshal(msg.Message)
 			if err != nil {
@@ -159,7 +160,7 @@ func MessageCreateEvent(session *discordgo.Session, msg *discordgo.MessageCreate
 		// Check if the command requires enhanced permissions.
 		if cmd.Enhanced {
 			// Check if the user does not have the "Enhanced" role.
-			if !snaily.HasRole(member, config.Get().Discord.Roles.Enhanced) {
+			if !snaily.HasRole(member, snaily.Config.Discord.Roles.Enhanced) {
 				snaily.SendMessage(msg.ChannelID, "<@%s>, no permission.", msg.Author.ID)
 				return
 			}
