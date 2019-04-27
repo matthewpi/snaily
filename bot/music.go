@@ -5,7 +5,7 @@ import (
 	"github.com/rylio/ytdl"
 )
 
-// Request .
+// Request represents a music request.
 type Request struct {
 	Author    *discordgo.Member `json:"author"`
 	ChannelID string            `json:"channelId"`

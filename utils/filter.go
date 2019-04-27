@@ -95,11 +95,8 @@ func removeRepeating(message string) string {
 			} else {
 				// Check if there are two consecutive characters.
 				if twoConsecutive {
-					// Check if there are two Gs being replaced.
-					if message[consecutiveIndex+1:in] != "gg" {
-						// Replace the consecutive characters with one.
-						msg = strings.Replace(msg, message[consecutiveIndex+1:in], "", 1)
-					}
+					// Replace the consecutive characters with one.
+					msg = strings.Replace(msg, message[consecutiveIndex+1:in], "", 1)
 				}
 
 				twoConsecutive = false
@@ -112,10 +109,8 @@ func removeRepeating(message string) string {
 
 	// Make sure the last part of the string can actually be replaced do to how our for-loop is structured.
 	if twoConsecutive {
-		if message[consecutiveIndex+1:] != "gg" {
-			// Replace the consecutive characters with one.
-			msg = strings.Replace(msg, message[consecutiveIndex+1:], "", 1)
-		}
+		// Replace the consecutive characters with one.
+		msg = strings.Replace(msg, message[consecutiveIndex+1:], "", 1)
 	}
 
 	return msg

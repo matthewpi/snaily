@@ -3,10 +3,10 @@ package bot
 import (
 	"fmt"
 	"github.com/bwmarrin/discordgo"
-	"github.com/jonas747/dca"
 	"github.com/matthewpi/snaily/backend"
 	"github.com/matthewpi/snaily/command"
 	"github.com/matthewpi/snaily/config"
+	"github.com/matthewpi/snaily/dca"
 	"github.com/matthewpi/snaily/logger"
 	"io"
 	"net/http"
@@ -16,14 +16,13 @@ import (
 
 // Bot .
 type Bot struct {
-	Config      *config.Config       `json:"config"`
-	Commands    []*command.Command   `json:"commands"`
-	Mongo       *backend.MongoDriver `json:"-"`
-	Redis       *backend.RedisDriver `json:"-"`
-	Session     *discordgo.Session   `json:"-"`
-	User        *discordgo.User      `json:"-"`
-	GuildID     string               `json:"guildId"`
-	Queue       []*Request           `json:"queue"`
+	Config      *config.Config        `json:"config"`
+	Commands    []*command.Command    `json:"commands"`
+	Redis       *backend.RedisDriver  `json:"-"`
+	Session     *discordgo.Session    `json:"-"`
+	User        *discordgo.User       `json:"-"`
+	GuildID     string                `json:"guildId"`
+	Queue       []*Request            `json:"queue"`
 	MusicStream *dca.StreamingSession `json:"-"`
 }
 
@@ -352,7 +351,7 @@ func (bot *Bot) Music() {
 			}
 			bot.MusicStream = nil
 
-			encodingSession.Stop()
+			_ = encodingSession.Stop()
 			encodingSession.Cleanup()
 
 			if len(bot.Queue) < 1 {

@@ -81,12 +81,16 @@ func steamCommandHandler(cmd *command.Execution) {
 			return
 		}
 
-		defer vanityResponse.Body.Close()
-
 		// Read the response body.
 		vanityContent, err := ioutil.ReadAll(vanityResponse.Body)
 		if err != nil {
 			logger.Errorw("[Discord] Failed to read response body.", logger.Err(err))
+			return
+		}
+
+		err = vanityResponse.Body.Close()
+		if err != nil {
+			logger.Errorw("[Discord] Failed to close response body.", logger.Err(err))
 			return
 		}
 
@@ -115,12 +119,16 @@ func steamCommandHandler(cmd *command.Execution) {
 		return
 	}
 
-	defer response.Body.Close()
-
 	// Read the response body.
 	contents, err := ioutil.ReadAll(response.Body)
 	if err != nil {
 		logger.Errorw("[Discord] Failed to read response body.", logger.Err(err))
+		return
+	}
+
+	err = response.Body.Close()
+	if err != nil {
+		logger.Errorw("[Discord] Failed to close response body.", logger.Err(err))
 		return
 	}
 

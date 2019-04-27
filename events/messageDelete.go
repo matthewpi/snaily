@@ -8,7 +8,7 @@ import (
 	"github.com/matthewpi/snaily/logger"
 )
 
-func MessageDeleteEvent(session *discordgo.Session, msg *discordgo.MessageDelete) {
+func MessageDeleteEvent(_ *discordgo.Session, msg *discordgo.MessageDelete) {
 	// Get the stored stacktrace.bot object.
 	snaily := bot.GetBot()
 
@@ -52,8 +52,14 @@ func MessageDeleteEvent(session *discordgo.Session, msg *discordgo.MessageDelete
 		},
 		[]*discordgo.MessageEmbedField{
 			{
-				Name:   "ID",
+				Name:   "Message ID",
 				Value:  msg.ID,
+				Inline: false,
+			},
+
+			{
+				Name:   "Channel",
+				Value:  fmt.Sprintf("<#%s> (%s)", originalMessage.ChannelID, originalMessage.ChannelID),
 				Inline: false,
 			},
 

@@ -13,7 +13,7 @@ import (
 	"unicode"
 )
 
-func MessageCreateEvent(session *discordgo.Session, msg *discordgo.MessageCreate) {
+func MessageCreateEvent(_ *discordgo.Session, msg *discordgo.MessageCreate) {
 	// Get the stored stacktrace.bot object.
 	snaily := bot.GetBot()
 

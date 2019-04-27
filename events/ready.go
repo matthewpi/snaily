@@ -6,7 +6,7 @@ import (
 	"github.com/matthewpi/snaily/logger"
 )
 
-func ReadyEvent(session *discordgo.Session, event *discordgo.Ready) {
+func ReadyEvent(session *discordgo.Session, _ *discordgo.Ready) {
 	snaily := bot.GetBot()
 
 	if snaily.Config.Discord.Status.Active {

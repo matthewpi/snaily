@@ -82,10 +82,11 @@ func purgeCommandHandler(cmd *command.Execution) {
 		},
 		[]*discordgo.MessageEmbedField{
 			{
-				Name:   "Channel ID",
-				Value:  cmd.Message.ChannelID,
+				Name:   "Channel",
+				Value:  fmt.Sprintf("<#%s> (%s)", cmd.Message.ChannelID, cmd.Message.ChannelID),
 				Inline: false,
 			},
+
 			{
 				Name:   "Message Count",
 				Value:  cmd.Arguments[0],

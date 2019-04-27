@@ -72,19 +72,36 @@ func main() {
 	}
 	logger.Debug("[Preflight] All preflight tasks were successful.")
 
-	mongo := &backend.MongoDriver{}
-	if err := mongo.Connect(config.Get().Backend.MongoDB.URI, config.Get().Backend.MongoDB.Database); err != nil {
-		logger.Fatalw("[MongoDB] Failed to connect to remote server.", logger.Err(err))
-		return
-	}
-	logger.Info("[MongoDB] Connected to remote server.")
-
 	redis := &backend.RedisDriver{}
 	if err := redis.Connect(config.Get().Backend.Redis.URI, config.Get().Backend.Redis.Password, config.Get().Backend.Redis.Database); err != nil {
 		logger.Fatalw("[Redis] Failed to connect to remote server.", logger.Err(err))
 		return
 	}
 	logger.Info("[Redis] Connected to remote server.")
+
+	bot.SetBot(&bot.Bot{
+		Config: config.Get(),
+		Commands: []*command.Command{
+			// Base Commands
+			commands.Info(),
+			commands.Ping(),
+			commands.Steam(),
+
+			// Moderation Commands
+			commands.Ban(),
+			commands.Kick(),
+			commands.Mute(),
+			commands.Purge(),
+
+			// Music Commands
+			commands.Pause(),
+			commands.Play(),
+			commands.Queue(),
+			commands.Stop(),
+		},
+		Redis:   redis,
+		GuildID: config.Get().Discord.GuildID,
+	})
 
 	discord, err := discordgo.New("Bot " + config.Get().Discord.Token)
 	if err != nil {
@@ -94,7 +111,7 @@ func main() {
 
 	discord.AddHandler(events.ReadyEvent)
 	discord.AddHandler(events.MessageCreateEvent)
-	//discord.AddHandler(events.MessageUpdateEvent)
+	discord.AddHandler(events.MessageUpdateEvent)
 	discord.AddHandler(events.MessageDeleteEvent)
 
 	err = discord.Open()
@@ -102,33 +119,14 @@ func main() {
 		logger.Fatalw("[Discord] Failed to connect to discord.", logger.Err(err))
 		return
 	}
+	bot.GetBot().Session = discord
 
 	botUser, err := discord.User("@me")
 	if err != nil {
 		logger.Fatalw("[Discord] Failed to obtain account details.", logger.Err(err))
 		return
 	}
-
-	bot.SetBot(&bot.Bot{
-		Config: config.Get(),
-		Commands: []*command.Command{
-			commands.Ban(),
-			commands.Info(),
-			commands.Kick(),
-			commands.Mute(),
-			commands.Pause(),
-			commands.Ping(),
-			commands.Play(),
-			commands.Purge(),
-			commands.Queue(),
-			commands.Steam(),
-		},
-		Mongo:   mongo,
-		Redis:   redis,
-		Session: discord,
-		User:    botUser,
-		GuildID: config.Get().Discord.GuildID,
-	})
+	bot.GetBot().User = botUser
 
 	// Start the music thread.
 	bot.GetBot().Music()
@@ -145,6 +143,5 @@ func main() {
 	<-sc
 	logger.Warn("[System] Received signal from the system, closing connections.")
 	_ = discord.Close()
-	mongo.Session.Close()
 	_ = redis.Client.Close()
 }
