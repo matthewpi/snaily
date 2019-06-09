@@ -9,8 +9,11 @@ import (
 )
 
 func MessageDeleteEvent(_ *discordgo.Session, msg *discordgo.MessageDelete) {
-	// Get the stored stacktrace.bot object.
 	snaily := bot.GetBot()
+
+	if _, ok := snaily.Config.Discord.Guilds[msg.GuildID]; !ok {
+		return
+	}
 
 	exec := snaily.Redis.Client.Get(fmt.Sprintf("snaily:message:%s", msg.ID))
 	result, err := exec.Bytes()
@@ -41,7 +44,7 @@ func MessageDeleteEvent(_ *discordgo.Session, msg *discordgo.MessageDelete) {
 
 	// Log the message delete.
 	snaily.SendEmbedMessage(
-		snaily.Config.Discord.Channels.Messages,
+		snaily.Config.Discord.Guilds[msg.GuildID].Channels.Messages,
 		0xB92222,
 		"Message Deleted",
 		"",

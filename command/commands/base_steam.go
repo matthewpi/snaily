@@ -75,7 +75,7 @@ func steamCommandHandler(cmd *command.Execution) {
 	// Check if the input was a vanity url.
 	if vanityUrl {
 		// Contact the steam api to resolve the vanity url.
-		vanityResponse, err := http.Get(fmt.Sprintf("https://api.steampowered.com/ISteamUser/ResolveVanityURL/v1/?key=%s&vanityurl=%s&url_type=1", snaily.Config.Steam.Key, steam64))
+		vanityResponse, err := http.Get(fmt.Sprintf("https://api.steampowered.com/ISteamUser/ResolveVanityURL/v1/?key=%s&vanityurl=%s&url_type=1", snaily.Config.API.Steam.Key, steam64))
 		if err != nil {
 			logger.Errorw("[Discord] Failed to load steam user information.", logger.Err(err))
 			return
@@ -113,7 +113,7 @@ func steamCommandHandler(cmd *command.Execution) {
 	}
 
 	// Contact the steam api to get profile information.
-	response, err := http.Get(fmt.Sprintf("https://api.steampowered.com/ISteamUser/GetPlayerSummaries/v2/?key=%s&steamids=%s", snaily.Config.Steam.Key, steam64))
+	response, err := http.Get(fmt.Sprintf("https://api.steampowered.com/ISteamUser/GetPlayerSummaries/v2/?key=%s&steamids=%s", snaily.Config.API.Steam.Key, steam64))
 	if err != nil {
 		logger.Errorw("[Discord] Failed to load steam user information.", logger.Err(err))
 		return

@@ -12,12 +12,14 @@ import (
 // Purge .
 func Purge() *command.Command {
 	cmd := &command.Command{
-		Name:    "purge",
-		Aliases: []string{},
+		Name: "purge",
+		Aliases: []string{
+			"clear",
+		},
 		Arguments: []*command.Argument{
 			{
-				ID:       "messages",
-				Name:     "messages",
+				ID:       "amount",
+				Name:     "amount",
 				Required: true,
 			},
 		},
@@ -71,9 +73,9 @@ func purgeCommandHandler(cmd *command.Execution) {
 
 	// Log the purge.
 	cmd.SendEmbedMessage(
-		snaily.Config.Discord.Channels.Messages,
+		snaily.Config.Discord.Guilds[cmd.Message.GuildID].Channels.Messages,
 		0xF8E71C,
-		"Messages Purge",
+		"Messages Purged",
 		"",
 		&discordgo.MessageEmbedAuthor{
 			URL:     "",

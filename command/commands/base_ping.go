@@ -21,5 +21,5 @@ func Ping() *command.Command {
 
 func pingCommandHandler(cmd *command.Execution) {
 	snaily := bot.GetBot()
-	cmd.SendMessage(cmd.Message.ChannelID, "Pong! %vms", int64(snaily.Session.HeartbeatLatency()/time.Millisecond))
+	cmd.SendMessage(cmd.Message.ChannelID, "<@%s>, pong! %vms", cmd.Message.Author.ID, int64(snaily.Session.HeartbeatLatency()/time.Millisecond))
 }

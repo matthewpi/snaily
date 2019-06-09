@@ -79,7 +79,7 @@ func kickCommandHandler(cmd *command.Execution) {
 
 	// Log the kick.
 	cmd.SendEmbedMessage(
-		snaily.Config.Discord.Channels.Punishments,
+		snaily.Config.Discord.Guilds[cmd.Message.GuildID].Channels.Punishments,
 		0xF5A623,
 		"Kick",
 		"",
@@ -90,7 +90,7 @@ func kickCommandHandler(cmd *command.Execution) {
 		},
 		[]*discordgo.MessageEmbedField{
 			{
-				Name:   "Punisher",
+				Name:   "Issuer",
 				Value:  fmt.Sprintf("%s#%s (%s)", cmd.Message.Author.Username, cmd.Message.Author.Discriminator, cmd.Message.Author.ID),
 				Inline: false,
 			},

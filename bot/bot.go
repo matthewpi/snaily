@@ -9,6 +9,7 @@ import (
 	"github.com/matthewpi/snaily/dca"
 	"github.com/matthewpi/snaily/logger"
 	"io"
+	"math/rand"
 	"net/http"
 	"strings"
 	"time"
@@ -16,14 +17,15 @@ import (
 
 // Bot .
 type Bot struct {
-	Config      *config.Config        `json:"config"`
-	Commands    []*command.Command    `json:"commands"`
-	Redis       *backend.RedisDriver  `json:"-"`
-	Session     *discordgo.Session    `json:"-"`
-	User        *discordgo.User       `json:"-"`
-	GuildID     string                `json:"guildId"`
-	Queue       []*Request            `json:"queue"`
-	MusicStream *dca.StreamingSession `json:"-"`
+	Config      *config.Config                   `json:"config"`
+	Commands    []*command.Command               `json:"commands"`
+	Redis       *backend.RedisDriver             `json:"-"`
+	Session     *discordgo.Session               `json:"-"`
+	User        *discordgo.User                  `json:"-"`
+	Queue       map[string][]*Request            `json:"queue"`
+	Playing     map[string]*Request              `json:"playing"`
+	Shuffle     map[string]bool                  `json:"shuffle"`
+	MusicStream map[string]*dca.StreamingSession `json:"-"`
 }
 
 // SendMessage .
@@ -245,23 +247,55 @@ func (bot *Bot) GuildMember(guildId string, userId string) (*discordgo.Member, e
 // AddQueue .
 func (bot *Bot) AddQueue(request *Request) {
 	if bot.Queue == nil {
-		bot.Queue = []*Request{}
+		bot.Queue = map[string][]*Request{}
+	}
+
+	if bot.Queue[request.Author.GuildID] == nil {
+		bot.Queue[request.Author.GuildID] = []*Request{}
 	}
 
 	// Add the video to the queue.
-	bot.Queue = append(bot.Queue, request)
+	bot.Queue[request.Author.GuildID] = append(bot.Queue[request.Author.GuildID], request)
 }
 
-func (bot *Bot) Music() {
+func (bot *Bot) ClearQueue(guildId string) {
+	bot.Queue[guildId] = []*Request{}
+}
+
+func (bot *Bot) Music(key string) {
 	go func() {
 		for {
-			if len(bot.Queue) < 1 {
+			if len(bot.Queue[key]) < 1 || bot.Playing[key] != nil {
 				time.Sleep(time.Second * 3)
 				continue
 			}
 
 			var request *Request
-			request, bot.Queue = bot.Queue[0], bot.Queue[1:]
+			if bot.Shuffle[key] {
+				// Generate a random number to select a random song.
+				random := rand.Intn(len(bot.Queue[key]) - 1)
+				request = bot.Queue[key][random]
+
+				// Remove the request from the queue.
+				if len(bot.Queue[key]) < 2 {
+					bot.Queue[key] = []*Request{}
+				} else {
+					bot.Queue[key] = append(bot.Queue[key][:random], bot.Queue[key][random+1:]...)
+				}
+			} else {
+				// Pop the bot.Queue[key] array.
+				request = bot.Queue[key][0]
+
+				// Remove the request from the queue.
+				if len(bot.Queue[key]) < 2 {
+					bot.Queue[key] = []*Request{}
+				} else {
+					bot.Queue[key] = bot.Queue[key][1:]
+				}
+			}
+
+			// Update the playing map.
+			bot.Playing[key] = request
 
 			// Get guild information.
 			guild, err := snaily.Guild(request.Author.GuildID)
@@ -330,13 +364,16 @@ func (bot *Bot) Music() {
 			// Play the video
 			done := make(chan error)
 			stream := dca.NewStream(encodingSession, conn, done)
-			bot.MusicStream = stream
+			bot.MusicStream[key] = stream
 			err = <-done
 			if err != nil && err != io.EOF {
 				bot.SendMessage(request.ChannelID, "An error occurred during playback.")
 				logger.Errorw("[Discord] Error occurred while playing video.", logger.Err(err))
 				return
 			}
+
+			//
+			bot.Playing[key] = nil
 
 			// Stop speaking.
 			err = conn.Speaking(false)
@@ -349,18 +386,20 @@ func (bot *Bot) Music() {
 			if err != nil {
 				logger.Errorw("[Discord] Failed to close stream.", logger.Err(err))
 			}
-			bot.MusicStream = nil
+			bot.MusicStream[key] = nil
 
 			_ = encodingSession.Stop()
 			encodingSession.Cleanup()
 
-			if len(bot.Queue) < 1 {
+			if len(bot.Queue[key]) < 1 {
 				err = conn.Disconnect()
 				if err != nil {
 					logger.Errorw("[Discord] Failed to disconnect from voice channel.", logger.Err(err))
 					return
 				}
 			}
+
+			time.Sleep(1 * time.Second)
 		}
 	}()
 }

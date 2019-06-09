@@ -89,7 +89,7 @@ func muteCommandHandler(cmd *command.Execution) {
 		}
 	}
 
-	err = snaily.Session.GuildMemberRoleAdd(cmd.Message.GuildID, target.User.ID, snaily.Config.Discord.Roles.Muted)
+	err = snaily.Session.GuildMemberRoleAdd(cmd.Message.GuildID, target.User.ID, snaily.Config.Discord.Guilds[cmd.Message.GuildID].Roles["muted"])
 	if err != nil {
 		cmd.SendMessage(cmd.Message.ChannelID, "<@%s>, an error occurred while muting the selected user.", cmd.Message.Author.ID)
 		logger.Errorw("[Discord] Failed to add role to user.", logger.Err(err))
@@ -98,7 +98,7 @@ func muteCommandHandler(cmd *command.Execution) {
 
 	// Log the mute.
 	cmd.SendEmbedMessage(
-		snaily.Config.Discord.Channels.Punishments,
+		snaily.Config.Discord.Guilds[cmd.Message.GuildID].Channels.Punishments,
 		0xF8E71C,
 		"Mute",
 		"",
@@ -109,7 +109,7 @@ func muteCommandHandler(cmd *command.Execution) {
 		},
 		[]*discordgo.MessageEmbedField{
 			{
-				Name:   "Punisher",
+				Name:   "Issuer",
 				Value:  fmt.Sprintf("%s#%s (%s)", cmd.Message.Author.Username, cmd.Message.Author.Discriminator, cmd.Message.Author.ID),
 				Inline: false,
 			},

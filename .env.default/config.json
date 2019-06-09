@@ -1,10 +1,5 @@
 {
     "backend": {
-        "mongodb": {
-            "uri": "mongodb://127.0.0.1:27017",
-            "database": "snaily"
-        },
-
         "redis": {
             "uri": "127.0.0.1:6379",
             "password": "",
@@ -12,9 +7,22 @@
         }
     },
 
+    "api": {
+        "hypixel": {
+            "key": "Join hypixel.net and run the /api command."
+        },
+
+        "steam": {
+            "key": "https://steamcommunity.com/dev/apikey (Generate a new API Key)"
+        },
+
+        "youtube": {
+            "key": ""
+        }
+    },
+
     "discord": {
         "token": "https://discordapp.com/developers/applications/ (Create a bot application and get the token)",
-        "guildId": "<Guild ID> (this bot only supports one guild currently)",
         "prefix": ".",
 
         "status": {
@@ -23,20 +31,20 @@
             "type": "playing"
         },
 
-        "channels": {
-            "punishments": "<Punishment Log Channel ID>",
-            "messages": "<Message Log Channel ID>"
-        },
+        "guilds": {
+            "<Guild ID>": {
+                "channels": {
+                    "punishments": "<Punishment Log Channel ID>",
+                    "messages": "<Message Log Channel ID>"
+                },
 
-        "roles": {
-            "enhanced": "<Enhanced Role ID>",
-            "boombox": "<Boombox Role ID>",
-            "muted": "<Muted Role ID>"
+                "roles": {
+                    "enhanced": "<Enhanced Role ID>",
+                    "boombox": "<Boombox Role ID>",
+                    "muted": "<Muted Role ID>"
+                }
+            }
         }
-    },
-
-    "steam": {
-        "key": "https://steamcommunity.com/dev/apikey (Generate a new API Key)"
     },
 
     "filter": {

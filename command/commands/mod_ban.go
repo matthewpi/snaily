@@ -99,7 +99,7 @@ func banCommandHandler(cmd *command.Execution) {
 
 	// Log the mute.
 	cmd.SendEmbedMessage(
-		snaily.Config.Discord.Channels.Punishments,
+		snaily.Config.Discord.Guilds[cmd.Message.GuildID].Channels.Punishments,
 		0xD0021B,
 		"Ban",
 		"",
@@ -110,7 +110,7 @@ func banCommandHandler(cmd *command.Execution) {
 		},
 		[]*discordgo.MessageEmbedField{
 			{
-				Name:   "Punisher",
+				Name:   "Issuer",
 				Value:  fmt.Sprintf("%s#%s (%s)", cmd.Message.Author.Username, cmd.Message.Author.Discriminator, cmd.Message.Author.ID),
 				Inline: false,
 			},

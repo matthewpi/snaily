@@ -14,8 +14,11 @@ import (
 )
 
 func MessageCreateEvent(_ *discordgo.Session, msg *discordgo.MessageCreate) {
-	// Get the stored stacktrace.bot object.
 	snaily := bot.GetBot()
+
+	if _, ok := snaily.Config.Discord.Guilds[msg.GuildID]; !ok {
+		return
+	}
 
 	// Check if the message author is a bot.
 	if msg.Author.Bot {
@@ -33,7 +36,7 @@ func MessageCreateEvent(_ *discordgo.Session, msg *discordgo.MessageCreate) {
 
 			// Log the message delete.
 			snaily.SendEmbedMessage(
-				snaily.Config.Discord.Channels.Messages,
+				snaily.Config.Discord.Guilds[msg.GuildID].Channels.Messages,
 				0xB92222,
 				"Message Deleted",
 				"",
@@ -160,7 +163,7 @@ func MessageCreateEvent(_ *discordgo.Session, msg *discordgo.MessageCreate) {
 		// Check if the command requires enhanced permissions.
 		if cmd.Enhanced {
 			// Check if the user does not have the "Enhanced" role.
-			if !snaily.HasRole(member, snaily.Config.Discord.Roles.Enhanced) {
+			if !snaily.HasRole(member, snaily.Config.Discord.Guilds[msg.GuildID].Roles["enhanced"]) {
 				snaily.SendMessage(msg.ChannelID, "<@%s>, no permission.", msg.Author.ID)
 				return
 			}
@@ -169,7 +172,7 @@ func MessageCreateEvent(_ *discordgo.Session, msg *discordgo.MessageCreate) {
 		// Check if the command requires a specific role.
 		if len(cmd.Role) > 1 {
 			// Check if the user does not have the configured role.
-			if !snaily.HasRole(member, cmd.Role) {
+			if !snaily.HasRole(member, snaily.Config.Discord.Guilds[msg.GuildID].Roles[cmd.Role]) {
 				snaily.SendMessage(msg.ChannelID, "<@%s>, no permission.", msg.Author.ID)
 				return
 			}

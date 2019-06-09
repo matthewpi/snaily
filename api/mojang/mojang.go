@@ -1,0 +1,5 @@
+package mojang
+
+const (
+	BaseUrl = ""
+)

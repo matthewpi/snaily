@@ -9,13 +9,13 @@ BUILD_BRANCH  := `git rev-parse --abbrev-ref HEAD`
 BUILD_COMMIT  := `git rev-parse HEAD | head -c 8`
 BUILD_DATE    := `date +%Y-%m-%d`
 
-LDFLAGS = -ldflags "-X main.buildVersion=$(BUILD_VERSION) -X main.buildBranch=$(BUILD_BRANCH) -X main.buildCommit=$(BUILD_COMMIT) -X main.buildDate=$(BUILD_DATE)"
+LDFLAGS = -ldflags "-s -w -X main.buildVersion=$(BUILD_VERSION) -X main.buildBranch=$(BUILD_BRANCH) -X main.buildCommit=$(BUILD_COMMIT) -X main.buildDate=$(BUILD_DATE)"
 
 all: clean build
 
 clean:
-	go clean
-	rm snaily -f
+	@go clean
+	@rm $(OUTPUT_FILE) -f
 
 build:
-	CGO_ENABLED=$(CGO) GOOS=$(GOOS) GOARCH=$(GOARCH) go build -o $(OUTPUT_FILE) -v $(LDFLAGS) main.go
+	@CGO_ENABLED=$(CGO) GOOS=$(GOOS) GOARCH=$(GOARCH) go build -o $(OUTPUT_FILE) -v $(LDFLAGS) main.go

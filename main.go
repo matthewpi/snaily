@@ -7,6 +7,7 @@ import (
 	"github.com/matthewpi/snaily/command"
 	"github.com/matthewpi/snaily/command/commands"
 	"github.com/matthewpi/snaily/config"
+	"github.com/matthewpi/snaily/dca"
 	"github.com/matthewpi/snaily/events"
 	"github.com/matthewpi/snaily/logger"
 	"log"
@@ -83,6 +84,7 @@ func main() {
 		Config: config.Get(),
 		Commands: []*command.Command{
 			// Base Commands
+			commands.Hypixel(),
 			commands.Info(),
 			commands.Ping(),
 			commands.Steam(),
@@ -96,11 +98,18 @@ func main() {
 			// Music Commands
 			commands.Pause(),
 			commands.Play(),
+			commands.Playing(),
+			commands.Playlist(),
 			commands.Queue(),
+			commands.Shuffle(),
+			commands.Skip(),
 			commands.Stop(),
 		},
-		Redis:   redis,
-		GuildID: config.Get().Discord.GuildID,
+		Redis:       redis,
+		Queue:       map[string][]*bot.Request{},
+		Playing:     map[string]*bot.Request{},
+		Shuffle:     map[string]bool{},
+		MusicStream: map[string]*dca.StreamingSession{},
 	})
 
 	discord, err := discordgo.New("Bot " + config.Get().Discord.Token)
@@ -113,6 +122,8 @@ func main() {
 	discord.AddHandler(events.MessageCreateEvent)
 	discord.AddHandler(events.MessageUpdateEvent)
 	discord.AddHandler(events.MessageDeleteEvent)
+	discord.AddHandler(events.GuildRoleCreateEvent)
+	discord.AddHandler(events.GuildRoleDeleteEvent)
 
 	err = discord.Open()
 	if err != nil {
@@ -129,7 +140,10 @@ func main() {
 	bot.GetBot().User = botUser
 
 	// Start the music thread.
-	bot.GetBot().Music()
+	for key := range bot.GetBot().Config.Discord.Guilds {
+		bot.GetBot().Shuffle[key] = false
+		bot.GetBot().Music(key)
+	}
 
 	buildVersion = ""
 	buildBranch = ""

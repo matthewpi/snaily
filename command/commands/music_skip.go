@@ -5,20 +5,22 @@ import (
 	"github.com/matthewpi/snaily/command"
 )
 
-// Stop .
-func Stop() *command.Command {
+// Skip .
+func Skip() *command.Command {
 	cmd := &command.Command{
-		Name:      "stop",
-		Aliases:   []string{},
+		Name: "skip",
+		Aliases: []string{
+			"next",
+		},
 		Arguments: []*command.Argument{},
 		Enhanced:  false,
 		Role:      "boombox",
-		Handler:   stopCommandHandler,
+		Handler:   skipCommandHandler,
 	}
 	return cmd
 }
 
-func stopCommandHandler(cmd *command.Execution) {
+func skipCommandHandler(cmd *command.Execution) {
 	snaily := bot.GetBot()
 
 	// Check if there is not an active stream.
@@ -27,12 +29,9 @@ func stopCommandHandler(cmd *command.Execution) {
 		return
 	}
 
-	// Clear the song queue.
-	snaily.Queue[cmd.Message.GuildID] = []*bot.Request{}
-
 	// End the music stream.
 	snaily.MusicStream[cmd.Message.GuildID].Stop()
 
 	// Send a message to the user.
-	cmd.SendMessage(cmd.Message.ChannelID, "<@%s>, I've stopped the music.", cmd.Message.Author.ID)
+	cmd.SendMessage(cmd.Message.ChannelID, "<@%s>, song skipped.", cmd.Message.Author.ID)
 }

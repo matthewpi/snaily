@@ -33,10 +33,15 @@ func sanitize(message string) (string, error) {
 	// Remove accents from the string.
 	t := transform.Chain(norm.NFD, runes.Remove(runes.In(unicode.Mn)), norm.NFC)
 	message, _, err := transform.String(t, message)
-
 	if err != nil {
 		return "", err
 	}
+
+	// Remove zero-width spaces.
+	message = strings.ReplaceAll(message, "\u200b", "")
+
+	// Remove whitespace.
+	message = removeWhitespace(message)
 
 	// Convert the string to lowercase.
 	message = strings.ToLower(message)
@@ -45,26 +50,23 @@ func sanitize(message string) (string, error) {
 	message = removeRepeating(message)
 
 	// Convert numbers to letters.
-	message = strings.Replace(message, "0", "o", -1)
-	message = strings.Replace(message, "1", "i", -1)
-	message = strings.Replace(message, "3", "e", -1)
-	message = strings.Replace(message, "4", "a", -1)
-	message = strings.Replace(message, "5", "s", -1)
-	message = strings.Replace(message, "6", "b", -1)
-	message = strings.Replace(message, "7", "l", -1)
-	message = strings.Replace(message, "8", "b", -1)
+	message = strings.ReplaceAll(message, "0", "o")
+	message = strings.ReplaceAll(message, "1", "i")
+	message = strings.ReplaceAll(message, "3", "e")
+	message = strings.ReplaceAll(message, "4", "a")
+	message = strings.ReplaceAll(message, "5", "s")
+	message = strings.ReplaceAll(message, "6", "b")
+	message = strings.ReplaceAll(message, "7", "l")
+	message = strings.ReplaceAll(message, "8", "b")
 
 	// Replace symbols with letters.
-	message = strings.Replace(message, "@", "a", -1)
-	message = strings.Replace(message, "!", "a", -1)
-	message = strings.Replace(message, "$", "s", -1)
-	message = strings.Replace(message, "_", " ", -1)
-	message = strings.Replace(message, "-", " ", -1)
-	message = strings.Replace(message, "*", " ", -1)
-	message = strings.Replace(message, "()", "0", -1)
-
-	// Remove spaces.
-	message = strings.Replace(message, " ", "", -1)
+	message = strings.ReplaceAll(message, "@", "a")
+	message = strings.ReplaceAll(message, "!", "a")
+	message = strings.ReplaceAll(message, "$", "s")
+	message = strings.ReplaceAll(message, "_", " ")
+	message = strings.ReplaceAll(message, "-", " ")
+	message = strings.ReplaceAll(message, "*", " ")
+	message = strings.ReplaceAll(message, "()", "0")
 
 	return message, nil
 }
@@ -77,7 +79,7 @@ func sanitize(message string) (string, error) {
 // if a third character doesn't match then reset the values and start checking the next character.
 func removeRepeating(message string) string {
 	msg := message
-	previous := []int32{}
+	previous := make([]int32, 0)
 	twoConsecutive := false
 	consecutiveIndex := 0
 
@@ -114,4 +116,15 @@ func removeRepeating(message string) string {
 	}
 
 	return msg
+}
+
+func removeWhitespace(message string) string {
+	var output []rune
+	for _, r := range message {
+		if !unicode.IsSpace(r) {
+			output = append(output, r)
+		}
+	}
+
+	return string(output)
 }

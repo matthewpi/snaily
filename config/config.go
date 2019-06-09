@@ -26,10 +26,23 @@ type Config struct {
 		} `json:"redis"`
 	} `json:"backend"`
 
+	API struct {
+		Hypixel struct {
+			Key string `json:"key"`
+		} `json:"hypixel"`
+
+		Steam struct {
+			Key string `json:"key"`
+		} `json:"steam"`
+
+		Youtube struct {
+			Key string `json:"key"`
+		} `json:"youtube"`
+	} `json:"api"`
+
 	Discord struct {
-		Token   string `json:"token"`
-		GuildID string `json:"guildId"`
-		Prefix  string `json:"prefix"`
+		Token  string `json:"token"`
+		Prefix string `json:"prefix"`
 
 		Status struct {
 			Active bool   `json:"active"`
@@ -37,21 +50,15 @@ type Config struct {
 			Type   string `json:"type"`
 		} `json:"status"`
 
-		Channels struct {
-			Punishments string `json:"punishments"`
-			Messages    string `json:"messages"`
-		} `json:"channels"`
+		Guilds map[string]struct {
+			Channels struct {
+				Messages    string `json:"messages"`
+				Punishments string `json:"punishments"`
+			} `json:"channels"`
 
-		Roles struct {
-			Enhanced string `json:"enhanced"`
-			Boombox  string `json:"boombox"`
-			Muted    string `json:"muted"`
-		} `json:"roles"`
-	} `json:"discord"`
-
-	Steam struct {
-		Key string `json:"key"`
-	} `json:"steam"`
+			Roles map[string]string `json:"roles"`
+		} `json:"guilds"`
+	}
 
 	Filter struct {
 		Active bool     `json:"active"`

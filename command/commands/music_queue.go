@@ -5,17 +5,18 @@ import (
 	"github.com/bwmarrin/discordgo"
 	"github.com/matthewpi/snaily/bot"
 	"github.com/matthewpi/snaily/command"
-	"github.com/matthewpi/snaily/config"
 )
 
 // Queue .
 func Queue() *command.Command {
 	cmd := &command.Command{
-		Name:      "queue",
-		Aliases:   []string{},
+		Name: "queue",
+		Aliases: []string{
+			"q",
+		},
 		Arguments: []*command.Argument{},
 		Enhanced:  false,
-		Role:      config.Get().Discord.Roles.Boombox,
+		Role:      "boombox",
 		Handler:   queueCommandHandler,
 	}
 	return cmd
@@ -25,14 +26,14 @@ func queueCommandHandler(cmd *command.Execution) {
 	snaily := bot.GetBot()
 
 	if len(cmd.Arguments) < 1 {
-		if len(snaily.Queue) < 1 {
+		if len(snaily.Queue[cmd.Message.GuildID]) < 1 {
 			cmd.SendMessage(cmd.Message.ChannelID, "<@%s>, there are currently no songs in the queue.", cmd.Message.Author.ID)
 			return
 		}
 
 		var fields []*discordgo.MessageEmbedField
 
-		for _, request := range snaily.Queue {
+		for _, request := range snaily.Queue[cmd.Message.GuildID] {
 			fields = append(fields,
 				&discordgo.MessageEmbedField{
 					Name:   request.VideoInfo.Title,
@@ -57,5 +58,13 @@ func queueCommandHandler(cmd *command.Execution) {
 		)
 		return
 	}
-}
 
+	if len(cmd.Arguments) == 1 {
+		switch cmd.Arguments[0] {
+		case "clear":
+			snaily.ClearQueue(cmd.Message.GuildID)
+			cmd.SendMessage(cmd.Message.ChannelID, "<@%s>, queue cleared.", cmd.Message.Author.ID)
+		}
+		return
+	}
+}
